@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CleanEdittext.iml" filepath="$PROJECT_DIR$/CleanEdittext.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CleanEditText.iml" filepath="$PROJECT_DIR$/CleanEditText.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/cleanedittextlibrary/cleanedittextlibrary.iml" filepath="$PROJECT_DIR$/cleanedittextlibrary/cleanedittextlibrary.iml" />
     </modules>

@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import z.sye.space.cleanedittextlibrary.MaterialCleanEditText;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -26,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        MaterialCleanEditText mce = (MaterialCleanEditText) findViewById(R.id.mce);
+        mce.setIcon(R.mipmap.ic_launcher);
     }
 
     @Override

@@ -5,8 +5,7 @@
               android:orientation="vertical"
               android:paddingBottom="@dimen/layout_padding_top_and_bottom"
               android:paddingLeft="@dimen/layout_padding_left_and_right"
-              android:paddingRight="@dimen/layout_padding_left_and_right"
-              android:paddingTop="@dimen/layout_padding_top_and_bottom">
+              android:paddingRight="@dimen/layout_padding_left_and_right">
 
     <FrameLayout
         android:id="@+id/fl_material_content"
@@ -17,6 +16,7 @@
             android:id="@+id/tv_material_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="1dp"
             android:text="用户名"
             android:textColor="@android:color/black"
             android:textSize="@dimen/hint_size_default"
@@ -43,7 +43,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:paddingLeft="40dp"
                 android:textSize="@dimen/hint_size_default"/>
 
             <FrameLayout

@@ -12,6 +12,8 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -39,7 +41,6 @@ public class MaterialCleanEditText extends FrameLayout {
     private TextView mError;
 
     private int mMinEditTextHeight = 3;
-    private int mEditTextTargetHeight = 0;
 
     /**
      * if mEditText could expand or not
@@ -50,6 +51,7 @@ public class MaterialCleanEditText extends FrameLayout {
     private int mErrorHeight;
 
     private long ANIMATION_DURATION = 150;
+    private LayoutParams mEditTextParams;
 
     public MaterialCleanEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -73,16 +75,18 @@ public class MaterialCleanEditText extends FrameLayout {
         mEditTextContent.getLayoutParams().height = (int) (mHintHeight * 0.9 + mEditTextLayoutHeight);
 
         FrameLayout.LayoutParams hintParams = (LayoutParams) mHint.getLayoutParams();
-        hintParams.topMargin = (int) (mHintHeight * 0.75);
+        hintParams.topMargin = (int) (mHintHeight * 0.7);
         hintParams.width = LayoutParams.MATCH_PARENT;
         hintParams.height = LayoutParams.MATCH_PARENT;
         mHint.setLayoutParams(hintParams);
         mHint.setGravity(Gravity.CENTER_VERTICAL);
 
+        mEditTextParams = new LayoutParams(mEditText.getLayoutParams());
+
         mErrorHeight = getMeasureHeight(mError);
 
         //shows no icon as default
-//        mIcon.setVisibility(GONE);
+        mIcon.setVisibility(GONE);
         //set editText height to 3
         mEditTextLayout.getLayoutParams().height = mMinEditTextHeight;
 
@@ -97,6 +101,42 @@ public class MaterialCleanEditText extends FrameLayout {
             }
         });
         Log.i(this.toString(), "init");
+    }
+
+    /**
+     * Set the Icon for the EditText
+     * @param resId
+     */
+    public void setIcon(int resId) {
+        mIcon.setImageResource(resId);
+        showIcon();
+    }
+
+    /**
+     * Set the Icon for the EditText
+     * @param drawable
+     */
+    public void setIcon(Drawable drawable) {
+        mIcon.setImageDrawable(drawable);
+        showIcon();
+    }
+
+    /**
+     * Set the Icon for the EditText
+     * @param bitmap
+     */
+    public void setIcon(Bitmap bitmap) {
+        mIcon.setImageBitmap(bitmap);
+        showIcon();
+    }
+
+    /**
+     * Show Icon && adjust EditText layout
+     */
+    private void showIcon() {
+        mIcon.setVisibility(VISIBLE);
+        mEditTextParams.leftMargin = DimensUtils.dip2px(mContext, 40);
+        mEditText.setLayoutParams(mEditTextParams);
     }
 
     /**
