@@ -18,8 +18,13 @@ public class DimensUtils {
     /**
      * @Desc: dip转化为px
      */
-    public static int dip2px(Context context, int dip) {
+    public static int dp2px(Context context, int dp) {
         final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dip * scale + 0.5f);
+        return (int) (dp * scale + 0.5f);
+    }
+
+    public static int sp2px(Context context, int sp) {
+        final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
+        return (int) (sp * fontScale + 0.5f);
     }
 }

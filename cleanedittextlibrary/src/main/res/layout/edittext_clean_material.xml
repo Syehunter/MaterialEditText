@@ -17,24 +17,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="1dp"
-            android:text="用户名"
-            android:textColor="@android:color/black"
-            android:textSize="@dimen/hint_size_default"
+            android:text="用户名/手机号/邮箱"
+            android:textColor="@color/black"
             />
 
         <FrameLayout
             android:id="@+id/fl_material_edittext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            >
+            android:layout_gravity="bottom">
 
             <ImageView
                 android:id="@+id/iv_material_icon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_gravity="center_vertical"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="5dp"
                 android:adjustViewBounds="true"
                 android:src="@android:drawable/stat_sys_phone_call_on_hold"/>
 
@@ -43,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:textSize="@dimen/hint_size_default"/>
+                android:textColor="@color/black"/>
 
             <FrameLayout
                 android:id="@+id/fl_material_clean"
@@ -70,7 +68,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="请输入正确的用户名"
-        android:textColor="@color/red"
-        android:textSize="@dimen/error_size_defalut"/>
+        android:textColor="@color/red"/>
 
 </LinearLayout>

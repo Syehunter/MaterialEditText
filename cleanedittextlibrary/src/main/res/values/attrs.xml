@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CleanEdt">
+        <attr name="inputTextSize" format="dimension"/>
+        <attr name="inputTextColor" format="color"/>
+        <attr name="inputIcon" format="reference"/>
+        <attr name="cleanIcon" format="reference"/>
+        <attr name="underlineColor" format="color"/>
+        <attr name="cursorColor" format="color"/>
+        <attr name="hintScale" format="float"/>
+        <attr name="hintColor" format="color"/>
+        <attr name="hintScaleColor" format="color"/>
+        <attr name="errorSize" format="dimension"/>
+        <attr name="errorColor" format="color"/>
+        <attr name="expandDuration" format="integer"/>
+    </declare-styleable>
+</resources>

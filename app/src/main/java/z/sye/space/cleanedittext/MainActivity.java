@@ -8,6 +8,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import z.sye.space.cleanedittextlibrary.MaterialCleanEditText;
 
@@ -31,6 +33,14 @@ public class MainActivity extends AppCompatActivity {
 
         MaterialCleanEditText mce = (MaterialCleanEditText) findViewById(R.id.mce);
         mce.setIcon(R.mipmap.ic_launcher);
+
+        LinearLayout ll = (LinearLayout) findViewById(R.id.ll);
+        TextView textView = new TextView(this);
+        textView.setText("rilenima");
+        textView.setTextSize(getResources().getDimensionPixelOffset(R.dimen.test));
+        ll.addView(textView, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
     }
 
     @Override
