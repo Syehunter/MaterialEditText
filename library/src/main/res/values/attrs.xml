@@ -7,11 +7,15 @@
         <attr name="cleanIcon" format="reference"/>
         <attr name="underlineColor" format="color"/>
         <attr name="cursorColor" format="color"/>
+        <attr name="hint" format="string"/>
         <attr name="hintScale" format="float"/>
         <attr name="hintColor" format="color"/>
         <attr name="hintScaleColor" format="color"/>
         <attr name="errorSize" format="dimension"/>
         <attr name="errorColor" format="color"/>
+        <attr name="length" format="integer"/>
+        <attr name="wordCountEnabled" format="boolean"/>
+        <attr name="wordCountColor" format="color"/>
         <attr name="expandDuration" format="integer"/>
     </declare-styleable>
 </resources>

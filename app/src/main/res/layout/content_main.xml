@@ -4,24 +4,45 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:clean="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:id="@+id/ll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="z.sye.space.cleanedittext.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <z.sye.space.cleanedittextlibrary.MaterialCleanEditText
-        android:id="@+id/mce"
-        clean:inputTextColor="@color/colorPrimary"
-        clean:inputTextSize="18sp"
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_margin="10dp"
+        android:textSize="15sp"
+        android:text="This is an normal MaterialCleanEditText ↓"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-    <z.sye.space.cleanedittextlibrary.MaterialCleanEditText
-        android:layout_marginTop="40dp"
+    <z.sye.space.library.MaterialEditText
+        android:id="@+id/username_material"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        clean:hint="Username/Phone/Email"/>
+
+    <TextView
+        android:layout_margin="10dp"
+        android:textSize="15sp"
+        android:text="This is a customAttrs MaterialCleanEditText ↓"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
+
+    <z.sye.space.library.MaterialEditText
+        android:id="@+id/password_material"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        clean:cursorColor="#773355"
+        clean:hint="Password"
+        clean:hintScale="0.8"
+        clean:hintScaleColor="#09c300"
+        clean:inputIcon="@mipmap/ic_launcher"
+        clean:inputTextColor="#FFAA99"
+        clean:hintColor="#FF5599"
+        clean:inputTextSize="18sp"
+        clean:underlineColor="#773355"/>
 
 </LinearLayout>

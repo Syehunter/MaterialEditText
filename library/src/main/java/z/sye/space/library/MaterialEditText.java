@@ -6,7 +6,7 @@
  * <p/>
  * 著作权人保留一切权利，任何使用需经授权。
  */
-package z.sye.space.cleanedittextlibrary;
+package z.sye.space.library;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -17,6 +17,8 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -24,6 +26,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.KeyListener;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -36,10 +39,15 @@ import android.widget.TextView;
 
 import java.lang.reflect.Field;
 
+import z.sye.space.cleanedittextlibrary.R;
+import z.sye.space.library.listeners.OnErrorListener;
+import z.sye.space.library.listeners.OnGetFocusListener;
+import z.sye.space.library.listeners.OnLostFocusListener;
+
 /**
  * Created by Syehunter on 2016/1/11.
  */
-public class MaterialCleanEditText extends FrameLayout {
+public class MaterialEditText extends FrameLayout {
 
     private Context mContext;
     private TextView mHint;
@@ -50,6 +58,7 @@ public class MaterialCleanEditText extends FrameLayout {
     private FrameLayout mCleanLayout;
     private ImageView mCleanIcon;
     private TextView mError;
+    private TextView mWordCount;
 
     //EditText config
     private float mInputTextSize = -1;
@@ -60,6 +69,7 @@ public class MaterialCleanEditText extends FrameLayout {
     private int mCursorColor = -1;
 
     //Hint config
+    private String mHintText = "";
     private float mHintScale = 0.7f;
     private int mHintColor = -1;
     private int mHintScaleColor = -1;
@@ -69,21 +79,26 @@ public class MaterialCleanEditText extends FrameLayout {
     private int mErrorColor = -1;
     private boolean mErrorShow = false;
 
+    //Length config
+    private int mWordCountColor = -1;
+    private int mMaxLength = 0;
+    private boolean mWordCountEnabled = true;
+
     /**
      * if mEditText could expand or not
      */
     private boolean mExpand = true;
-    private int mMinEditTextHeight = 3;
-    private int mHintHeight;
+    private int mMinEditTextHeight = 2;
     private int mEditTextLayoutHeight;
+    private int mHintHeight;
 
-    private long ANIMATION_DURATION = 150;
+    private long ANIMATION_DURATION = 100;
 
     private OnGetFocusListener mOnGetFocusListener;
     private OnLostFocusListener mOnLostFocusListener;
     private OnErrorListener mOnErrorListener;
 
-    public MaterialCleanEditText(Context context, AttributeSet attrs) {
+    public MaterialEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
         parseAttrs(mContext.obtainStyledAttributes(attrs, R.styleable.CleanEdt));
@@ -91,7 +106,10 @@ public class MaterialCleanEditText extends FrameLayout {
     }
 
     private void parseAttrs(TypedArray a) {
-//        mInputTextSize = a.getDimensionPixelSize(R.styleable.CleanEdt_inputTextSize, DimensUtils.sp2px(mContext, 18));
+        mMinEditTextHeight = DimensUtils.dp2px(mContext, mMinEditTextHeight);//convert minEditTextHeight to dp
+
+        mInputTextSize = a.getDimension(R.styleable.CleanEdt_inputTextSize,
+                getResources().getDimension(R.dimen.hint_size_default));
         mInputColor = a.getColor(R.styleable.CleanEdt_inputTextColor,
                 getResources().getColor(R.color.black));
         mInputIconId = a.getResourceId(R.styleable.CleanEdt_inputIcon, mInputIconId);
@@ -100,27 +118,34 @@ public class MaterialCleanEditText extends FrameLayout {
                 getResources().getColor(R.color.underline));
         mCursorColor = a.getColor(R.styleable.CleanEdt_underlineColor,
                 getResources().getColor(R.color.underline));
+        mHintText = a.getString(R.styleable.CleanEdt_hint);
         mHintScale = a.getFloat(R.styleable.CleanEdt_hintScale, mHintScale);
         mHintColor = a.getColor(R.styleable.CleanEdt_hintColor,
                 getResources().getColor(R.color.black));
         mHintScaleColor = a.getColor(R.styleable.CleanEdt_hintScaleColor, mHintScaleColor);
-        mErrorSize = a.getDimensionPixelSize(R.styleable.CleanEdt_errorSize, 14);
+        mErrorSize = a.getDimension(R.styleable.CleanEdt_errorSize,
+                getResources().getDimension(R.dimen.error_size_defalut));
         mErrorColor = a.getColor(R.styleable.CleanEdt_errorColor,
                 getResources().getColor(R.color.red));
+        mMaxLength = a.getInteger(R.styleable.CleanEdt_length, mMaxLength);
+        mWordCountEnabled = a.getBoolean(R.styleable.CleanEdt_wordCountEnabled, mWordCountEnabled);
+        mWordCountColor = a.getColor(R.styleable.CleanEdt_wordCountColor,
+                getResources().getColor(R.color.black));
         ANIMATION_DURATION = a.getInt(R.styleable.CleanEdt_expandDuration, (int) ANIMATION_DURATION);
         a.recycle();
     }
 
     private void init() {
-        View rootView = LayoutInflater.from(mContext).inflate(R.layout.edittext_clean_material, this);
-        mHint = (TextView) rootView.findViewById(R.id.tv_material_hint);
-        mEditTextContent = (FrameLayout) rootView.findViewById(R.id.fl_material_content);
-        mEditTextLayout = (FrameLayout) rootView.findViewById(R.id.fl_material_edittext);
-        mIcon = (ImageView) rootView.findViewById(R.id.iv_material_icon);
-        mEditText = (EditText) rootView.findViewById(R.id.edt_material);
-        mCleanLayout = (FrameLayout) rootView.findViewById(R.id.fl_material_clean);
-        mCleanIcon = (ImageView) rootView.findViewById(R.id.iv_material_clean);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.edittext_clean_material, this);
+        mHint = (TextView) view.findViewById(R.id.tv_material_hint);
+        mEditTextContent = (FrameLayout) view.findViewById(R.id.fl_material_content);
+        mEditTextLayout = (FrameLayout) view.findViewById(R.id.fl_material_edittext);
+        mIcon = (ImageView) view.findViewById(R.id.iv_material_icon);
+        mEditText = (EditText) view.findViewById(R.id.edt_material);
+        mCleanLayout = (FrameLayout) view.findViewById(R.id.fl_material_clean);
+        mCleanIcon = (ImageView) view.findViewById(R.id.iv_material_clean);
         mError = (TextView) findViewById(R.id.tv_material_error);
+        mWordCount = (TextView) findViewById(R.id.tv_material_wordcount);
 
         initConfigurations();
 
@@ -140,11 +165,12 @@ public class MaterialCleanEditText extends FrameLayout {
 
         //init edittext
         mEditText.getBackground().setColorFilter(mUnderlineColor, PorterDuff.Mode.SRC_ATOP);
-        setCursorDrawableColor(mCursorColor);
+        cursorColor(mCursorColor);
         mEditText.setOnFocusChangeListener(mOnFocusChangeListener);
 
         //show no icon as default
-        mIcon.setVisibility(GONE);
+        if (mInputIconId == -1)
+            mIcon.setVisibility(GONE);
 
         //show no error as default
         mError.setVisibility(GONE);
@@ -156,6 +182,7 @@ public class MaterialCleanEditText extends FrameLayout {
         mHint.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i("mHintId", mHint.hashCode() + "");
                 if (mExpand) {
                     expandEditText();
                 } else {
@@ -174,19 +201,28 @@ public class MaterialCleanEditText extends FrameLayout {
         });
     }
 
+    /**
+     * init Configurations defined in xml
+     */
     private void initConfigurations() {
-        this.setInputSize(mInputTextSize);
-        this.setInputColor(mInputColor);
+        this.inputSize(TypedValue.COMPLEX_UNIT_PX, mInputTextSize);
+        this.inputColor(mInputColor);
         if (mInputIconId != -1)
-            this.setIcon(mInputIconId);
+            this.icon(mInputIconId);
         if (mCleanIconId != -1)
-            this.setCleanIcon(mCleanIconId);
-        this.setHintColor(mHintColor);
-        this.setHintScale(mHintScale);
+            this.cleanIcon(mCleanIconId);
+        this.hint(mHintText);
+        this.hintColor(mHintColor);
+        this.hintScale(mHintScale);
         if (mHintScaleColor != -1)
-            this.setHintScaleColor(mHintScaleColor);
-        this.setErrorColor(mErrorColor);
-        this.setErrorSize(mErrorSize);
+            this.hintScaleColor(mHintScaleColor);
+        this.errorColor(mErrorColor);
+        this.errorSize(TypedValue.COMPLEX_UNIT_PX, mErrorSize);
+        if (mMaxLength != 0)
+            this.maxLength(mMaxLength);
+        this.wordCountEnabled(mWordCountEnabled);
+        if (mWordCountColor != -1)
+            this.wordCountColor(mWordCountColor);
     }
 
     private OnFocusChangeListener mOnFocusChangeListener = new OnFocusChangeListener() {
@@ -195,8 +231,11 @@ public class MaterialCleanEditText extends FrameLayout {
             if (hasFocus) {
                 mCleanLayout.setVisibility(TextUtils.isEmpty(getText()) ? GONE : VISIBLE);
                 mEditText.addTextChangedListener(mTextWatcher);
+                handleEditTextLength();
             } else {
-                if (TextUtils.isEmpty(getText())) {
+                if (TextUtils.isEmpty(getText()) && !mExpand) {
+                    //when lost focus and noting input
+                    //if could reduce
                     reduceEditText();
                 }
                 mCleanLayout.setVisibility(GONE);
@@ -206,6 +245,7 @@ public class MaterialCleanEditText extends FrameLayout {
                 if (null != mOnErrorListener) {
                     mError.setVisibility(mOnErrorListener.onError(getText()) ? VISIBLE : GONE);
                 }
+                hideWordCount();
             }
         }
     };
@@ -226,6 +266,7 @@ public class MaterialCleanEditText extends FrameLayout {
             if (null != mOnErrorListener) {
                 mError.setVisibility(mOnErrorListener.onError(s) ? VISIBLE : GONE);
             }
+            handleEditTextLength();
         }
 
         @Override
@@ -237,16 +278,67 @@ public class MaterialCleanEditText extends FrameLayout {
         }
     };
 
+    private void handleEditTextLength() {
+        if (mWordCountEnabled && !TextUtils.isEmpty(getText()) &&
+                (mMaxLength = getEditTextMaxLength() == 0 ? mMaxLength : getEditTextMaxLength()) != 0) {
+            //only when word count enabled and editText has both input and length limit
+            //word count show
+            showWordCount(getText().length(), mMaxLength);
+        } else {
+            hideWordCount();
+        }
+    }
+
+    private void showWordCount(int currentLength, int maxLength) {
+        mWordCount.setText(currentLength + " / " + maxLength);
+        mWordCount.setVisibility(VISIBLE);
+    }
+
+    private void hideWordCount() {
+        mWordCount.setText("");
+        mWordCount.setVisibility(GONE);
+    }
+
+    /**
+     * @return max length of editText
+     */
+    private int getEditTextMaxLength() {
+        int length = 0;
+        try {
+            InputFilter[] filters = mEditText.getFilters();
+            for (InputFilter filter : filters) {
+                Class<?> clazz = filter.getClass();
+                if (clazz.getName().equals("android.text.InputFilter$LengthFilter")) {
+                    Field[] fields = clazz.getDeclaredFields();
+                    for (Field field : fields) {
+                        if (field.getName().equals("mMax")) {
+                            field.setAccessible(true);
+                            length = (int) field.get(filter);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignoreException) {
+        }
+        return length;
+    }
+
     /**
      * expand the editText and reduce the hint
      */
     private void expandEditText() {
-        ValueAnimator expandAnimator =
-                expandLayout(mMinEditTextHeight, mEditTextLayoutHeight, mEditTextLayout);
+        ValueAnimator expandAnimator = ValueAnimator.ofInt(mMinEditTextHeight, mEditTextLayoutHeight);
+        expandAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator va) {
+                mEditTextLayout.getLayoutParams().height = (Integer) va.getAnimatedValue();
+                mEditTextLayout.requestLayout();
+            }
+        });
 
         AnimatorSet set = new AnimatorSet();
         set.playTogether(
-                ObjectAnimator.ofFloat(mHint, "alpha", 0.4f),
+                ObjectAnimator.ofFloat(mHint, "alpha", 0.6f),
                 ObjectAnimator.ofFloat(mHint, "scaleX", mHintScale),
                 ObjectAnimator.ofFloat(mHint, "scaleY", mHintScale),
                 ObjectAnimator.ofFloat(mHint, "translationX",
@@ -261,12 +353,13 @@ public class MaterialCleanEditText extends FrameLayout {
             public void onAnimationStart(Animator animation) {
                 mEditTextLayout.setBackgroundColor(
                         getResources().getColor(android.R.color.transparent));
+                Log.i("mEditLayoutIdExpand", mEditTextLayout.hashCode() + "");
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
                 if (mHintScaleColor != -1) {
-                    mHint.setTextColor(mHintColor);
+                    mHint.setTextColor(mHintScaleColor);
                 }
             }
 
@@ -294,8 +387,14 @@ public class MaterialCleanEditText extends FrameLayout {
      * reduce the editText and expand the hint
      */
     private void reduceEditText() {
-        ValueAnimator reduceAnimator =
-                expandLayout(mEditTextLayoutHeight, mMinEditTextHeight, mEditTextLayout);
+        ValueAnimator reduceAnimator = ValueAnimator.ofInt(mEditTextLayoutHeight, mMinEditTextHeight);
+        reduceAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator va) {
+                mEditTextLayout.getLayoutParams().height = (Integer) va.getAnimatedValue();
+                mEditTextLayout.requestLayout();
+            }
+        });
 
         AnimatorSet set = new AnimatorSet();
         set.playTogether(
@@ -311,13 +410,13 @@ public class MaterialCleanEditText extends FrameLayout {
         set.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
-
+                mHint.setTextColor(mHintColor);
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
-                mHint.setTextColor(mHintColor);
                 mEditTextLayout.setBackgroundColor(mUnderlineColor);
+                Log.i("mEditLayoutIdReduce", mEditTextLayout.hashCode() + "");
             }
 
             @Override
@@ -361,9 +460,10 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Set the Icon for the EditText
+     *
      * @param resId
      */
-    public MaterialCleanEditText setIcon(int resId) {
+    public MaterialEditText icon(int resId) {
         mInputIconId = resId;
         mIcon.setImageResource(mInputIconId);
         mIcon.setVisibility(VISIBLE);
@@ -378,9 +478,10 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Set the CleanIcon for the EditText
+     *
      * @param resId
      */
-    public MaterialCleanEditText setCleanIcon(int resId) {
+    public MaterialEditText cleanIcon(int resId) {
         mCleanIconId = resId;
         mCleanIcon.setImageResource(mCleanIconId);
         return this;
@@ -388,9 +489,10 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Set the cursor color of the EditText
+     *
      * @param color
      */
-    public MaterialCleanEditText setCursorDrawableColor(int color) {
+    public MaterialEditText cursorColor(int color) {
         try {
             mCursorColor = color;
             Field fCursorDrawableRes =
@@ -418,38 +520,42 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Do sth. when EditText get focus
+     *
      * @param onGetFocusListener
      */
-    public MaterialCleanEditText setOnGetFocusListener(OnGetFocusListener onGetFocusListener) {
+    public MaterialEditText setOnGetFocusListener(OnGetFocusListener onGetFocusListener) {
         mOnGetFocusListener = onGetFocusListener;
         return this;
     }
 
     /**
      * Do sth. when EditText lost focus
+     *
      * @param onLostFocusListener
      */
-    public MaterialCleanEditText setOnLostFocusListener(OnLostFocusListener onLostFocusListener) {
+    public MaterialEditText setOnLostFocusListener(OnLostFocusListener onLostFocusListener) {
         mOnLostFocusListener = onLostFocusListener;
         return this;
     }
 
     /**
      * Do sth. when error occurs
+     *
      * @param onErrorListener
      * @return
      */
-    public MaterialCleanEditText setOnErrorListener(OnErrorListener onErrorListener) {
+    public MaterialEditText setOnErrorListener(OnErrorListener onErrorListener) {
         mOnErrorListener = onErrorListener;
         return this;
     }
 
     /**
      * Set text for EditText
+     *
      * @param s
      * @return
      */
-    public MaterialCleanEditText setText(String s) {
+    public MaterialEditText inputText(String s) {
         mEditText.setText(s);
         //move the cursor position
         mEditText.setSelection(s.length());
@@ -458,22 +564,31 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Set EditText textSize and LargeHintSize
+     *
      * @param size
      * @return
      */
-    public MaterialCleanEditText setInputSize(float size) {
+    public MaterialEditText inputSize(float size) {
         mInputTextSize = size;
         mEditText.setTextSize(mInputTextSize);
         mHint.setTextSize(mInputTextSize);
         return this;
     }
 
+    public MaterialEditText inputSize(int unit, float size) {
+        mInputTextSize = size;
+        mEditText.setTextSize(unit, mInputTextSize);
+        mHint.setTextSize(unit, mInputTextSize);
+        return this;
+    }
+
     /**
      * Set editText textColor
+     *
      * @param color
      * @return
      */
-    public MaterialCleanEditText setInputColor(int color) {
+    public MaterialEditText inputColor(int color) {
         mInputColor = color;
         mEditText.setTextColor(mInputColor);
         return this;
@@ -483,17 +598,18 @@ public class MaterialCleanEditText extends FrameLayout {
      * @param hint
      * @return
      */
-    public MaterialCleanEditText setHint(@NonNull String hint) {
+    public MaterialEditText hint(@NonNull String hint) {
         mHint.setText(hint);
         return this;
     }
 
     /**
      * Set the color of Large hint
+     *
      * @param color
      * @return
      */
-    public MaterialCleanEditText setHintColor(int color) {
+    public MaterialEditText hintColor(int color) {
         mHintColor = color;
         mHint.setTextColor(mHintColor);
         return this;
@@ -501,30 +617,33 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Set the hint scale for ObjectAnimator, defaultValue is 0.7f
+     *
      * @param scale
      * @return
      */
-    public MaterialCleanEditText setHintScale(float scale) {
+    public MaterialEditText hintScale(float scale) {
         mHintScale = scale;
         return this;
     }
 
     /**
      * Set the small hint textColor
+     *
      * @param color
      * @return
      */
-    public MaterialCleanEditText setHintScaleColor(int color) {
+    public MaterialEditText hintScaleColor(int color) {
         mHintScaleColor = color;
         return this;
     }
 
     /**
      * Set the underline color of editText
+     *
      * @param color
      * @return
      */
-    public MaterialCleanEditText setUnderlineColor(int color) {
+    public MaterialEditText underlineColor(int color) {
         mUnderlineColor = color;
         mEditText.getBackground().setColorFilter(mUnderlineColor, PorterDuff.Mode.SRC_ATOP);
         if (!mExpand) {
@@ -535,31 +654,46 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Set the error promt
+     *
      * @param error
      * @return
      */
-    public MaterialCleanEditText error(String error) {
+    public MaterialEditText error(String error) {
         mError.setText(error);
         return this;
     }
 
     /**
      * Set error textSize
+     *
      * @param size
      * @return
      */
-    public MaterialCleanEditText setErrorSize(float size) {
+    public MaterialEditText errorSize(float size) {
         mErrorSize = size;
         mError.setTextSize(mErrorSize);
         return this;
     }
 
     /**
+     * Set error textSize
+     *
+     * @param size
+     * @return
+     */
+    public MaterialEditText errorSize(int unit, float size) {
+        mErrorSize = size;
+        mError.setTextSize(unit, mErrorSize);
+        return this;
+    }
+
+    /**
      * Set error textColor
+     *
      * @param color
      * @return
      */
-    public MaterialCleanEditText setErrorColor(int color) {
+    public MaterialEditText errorColor(int color) {
         mErrorColor = color;
         mError.setTextColor(mErrorColor);
         return this;
@@ -567,39 +701,77 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Discourage user from using this method
-     *      you'd better control the error's visibility in OnErrorListener
-     *
+     * you'd better control the error's visibility in OnErrorListener
+     * <p/>
      * However, if u don't want use this view as an error view, do what u want
+     *
      * @param show
      * @return
      */
-    public MaterialCleanEditText errorShow(boolean show) {
+    public MaterialEditText errorShow(boolean show) {
         mErrorShow = show;
         mError.setVisibility(mErrorShow ? VISIBLE : GONE);
         return this;
     }
 
     /**
-     * Set expand animator duration
+     * Set the word count textcolor
+     *
+     * @param color
+     * @return
+     */
+    public MaterialEditText wordCountColor(int color) {
+        mWordCountColor = color;
+        mWordCount.setTextColor(mWordCountColor);
+        return this;
+    }
+
+    /**
+     * Set expand animator duration, default is 100
+     *
      * @param duration
      * @return
      */
-    public MaterialCleanEditText setAnimatorDuration(long duration) {
+    public MaterialEditText duration(long duration) {
         ANIMATION_DURATION = duration;
         return this;
     }
 
-    public MaterialCleanEditText setInputType(int type) {
+    public MaterialEditText inputType(int type) {
         mEditText.setInputType(type);
         return this;
     }
 
-    public MaterialCleanEditText setFilters(InputFilter[] inputFilters) {
+    /**
+     * Set editText max length
+     *
+     * @param length
+     * @return
+     */
+    public MaterialEditText maxLength(int length) {
+        mMaxLength = length;
+        mEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(mMaxLength)});
+        return this;
+    }
+
+    /**
+     * Return false if length calculation not allow
+     *
+     * @param lengthEnabled
+     * @return
+     */
+    public MaterialEditText wordCountEnabled(boolean lengthEnabled) {
+        mWordCountEnabled = lengthEnabled;
+        mWordCount.setVisibility(mWordCountEnabled ? VISIBLE : GONE);
+        return this;
+    }
+
+    public MaterialEditText filters(InputFilter[] inputFilters) {
         mEditText.setFilters(inputFilters);
         return this;
     }
 
-    public MaterialCleanEditText setKeyListener(KeyListener input) {
+    public MaterialEditText keyListener(KeyListener input) {
         mEditText.setKeyListener(input);
         return this;
     }
@@ -613,9 +785,134 @@ public class MaterialCleanEditText extends FrameLayout {
 
     /**
      * Take methods with the real EditText you want that doesn't support in this Class
+     *
      * @return
      */
     public EditText real() {
         return mEditText;
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        MdEditTextSavedState ss = new MdEditTextSavedState(super.onSaveInstanceState());
+        ss.inputTextSize = mInputTextSize;
+        ss.inputColor = mInputColor;
+        ss.inputIconId = mInputIconId;
+        ss.cleanIconId = mCleanIconId;
+        ss.underlineColor = mUnderlineColor;
+        ss.cursorColor = mCursorColor;
+        ss.hintText = mHintText;
+        ss.hintScale = mHintScale;
+        ss.hintColor = mHintColor;
+        ss.hintScaleColor = mHintScaleColor;
+        ss.errorSize = mErrorSize;
+        ss.errorColor = mErrorColor;
+        ss.wordCountColor = mWordCountColor;
+        ss.maxLength = mMaxLength;
+        ss.wordCountEnabled = mWordCountEnabled;
+        return ss;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof MdEditTextSavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        MdEditTextSavedState ss = (MdEditTextSavedState) state;
+        super.onRestoreInstanceState(ss);
+        mInputTextSize = ss.inputTextSize;
+        mInputColor = ss.inputColor;
+        mInputIconId = ss.inputIconId;
+        mCleanIconId = ss.cleanIconId;
+        mUnderlineColor = ss.underlineColor;
+        mCursorColor = ss.cursorColor;
+        mHintText = ss.hintText;
+        mHintScale = ss.hintScale;
+        mHintColor = ss.hintColor;
+        mHintScaleColor = ss.hintScaleColor;
+        mErrorSize = ss.errorSize;
+        mErrorColor = ss.errorColor;
+        mWordCountColor = ss.wordCountColor;
+        mMaxLength = ss.maxLength;
+        mWordCountEnabled = ss.wordCountEnabled;
+    }
+
+    static class MdEditTextSavedState extends BaseSavedState {
+
+        Float inputTextSize;
+        Integer inputColor;
+        Integer inputIconId;
+        Integer cleanIconId;
+        Integer underlineColor;
+        Integer cursorColor;
+        String hintText;
+        Float hintScale;
+        Integer hintColor;
+        Integer hintScaleColor;
+        Float errorSize;
+        Integer errorColor;
+        Boolean errorShow;
+        Integer wordCountColor;
+        Integer maxLength;
+        Boolean wordCountEnabled;
+
+        private static final Parcelable.Creator<MdEditTextSavedState> mCreator = new Creator<MdEditTextSavedState>() {
+            @Override
+            public MdEditTextSavedState createFromParcel(Parcel source) {
+                return new MdEditTextSavedState(source);
+            }
+
+            @Override
+            public MdEditTextSavedState[] newArray(int size) {
+                return new MdEditTextSavedState[size];
+            }
+        };
+
+        public MdEditTextSavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private MdEditTextSavedState(Parcel source) {
+            super(source);
+            inputTextSize = source.readFloat();
+            inputColor = source.readInt();
+            inputIconId = source.readInt();
+            cleanIconId = source.readInt();
+            underlineColor = source.readInt();
+            cursorColor = source.readInt();
+            hintText = source.readString();
+            hintScale = source.readFloat();
+            hintColor = source.readInt();
+            hintScaleColor = source.readInt();
+            errorSize = source.readFloat();
+            errorColor = source.readInt();
+            errorShow = source.readByte() == 1;
+            wordCountColor = source.readInt();
+            maxLength = source.readInt();
+            wordCountEnabled = source.readByte() == 1;
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeFloat(inputTextSize);
+            out.writeInt(inputColor);
+            out.writeInt(inputIconId);
+            out.writeInt(cleanIconId);
+            out.writeInt(underlineColor);
+            out.writeInt(cursorColor);
+            out.writeString(hintText);
+            out.writeFloat(hintScale);
+            out.writeInt(hintColor);
+            out.writeInt(hintScaleColor);
+            out.writeFloat(errorSize);
+            out.writeInt(errorColor);
+            out.writeByte((byte) (errorShow ? 1 : 0));
+            out.writeInt(wordCountColor);
+            out.writeInt(maxLength);
+            out.writeByte((byte) (wordCountEnabled ? 1 : 0));
+        }
     }
 }

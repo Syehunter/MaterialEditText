@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:orientation="vertical"
               android:paddingBottom="@dimen/layout_padding_top_and_bottom"
               android:paddingLeft="@dimen/layout_padding_left_and_right"
               android:paddingRight="@dimen/layout_padding_left_and_right">
@@ -17,7 +16,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="1dp"
-            android:text="用户名/手机号/邮箱"
             android:textColor="@color/black"
             />
 
@@ -29,8 +27,10 @@
 
             <ImageView
                 android:id="@+id/iv_material_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:maxWidth="30dp"
+                android:maxHeight="30dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="5dp"
                 android:adjustViewBounds="true"
@@ -40,6 +40,7 @@
                 android:id="@+id/edt_material"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:maxLines="1"
                 android:layout_gravity="bottom"
                 android:textColor="@color/black"/>
 
@@ -48,13 +49,16 @@
                 android:layout_width="30dp"
                 android:layout_height="match_parent"
                 android:layout_gravity="right"
-                android:layout_marginRight="5dp">
+                android:layout_marginRight="10dp">
 
                 <ImageView
                     android:id="@+id/iv_material_clean"
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
+                    android:maxWidth="10dp"
+                    android:maxHeight="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="right|center_vertical"
+                    android:adjustViewBounds="true"
                     android:src="@drawable/clean"/>
 
             </FrameLayout>
@@ -65,9 +69,16 @@
 
     <TextView
         android:id="@+id/tv_material_error"
+        android:layout_below="@id/fl_material_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="请输入正确的用户名"
         android:textColor="@color/red"/>
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/tv_material_wordcount"
+        android:layout_below="@id/fl_material_content"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+</RelativeLayout>

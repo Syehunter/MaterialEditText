@@ -1,1 +1,1 @@
-include ':app', ':cleanedittextlibrary'
+include ':app', ':library'
