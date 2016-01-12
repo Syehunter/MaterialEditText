@@ -16,7 +16,7 @@ Improt library:
 	}
 	
 	dependencies {
-        compile 'com.github.Syehunter:PageStateLayout:0.1.2.1'
+        compile 'com.github.Syehunter:MaterialEditText:1.0.0'
 	}
 
 ![Gif](http://7xn4z4.com1.z0.glb.clouddn.com/MaterialEditText.gif)
