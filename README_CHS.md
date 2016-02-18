@@ -1,14 +1,14 @@
 # MaterialEditText
 
-Same as TextInputLayout but u can define the attrs as u like.
+动画效果与`support-design`包中的`TextInputLayout`相同，不过允许你自定义一些属性。
 
-[中文版](https://github.com/Syehunter/MaterialEditText/blob/master/README_CHS.md)
+[English](https://github.com/Syehunter/MaterialEditText/blob/master/README.md)
 
-Actually at first I just wirte this for personal use, but with coding I thought maybe I can make it better, and I did.
+事实上最开始的时候我写这个库只是为了自己使用，但是在coding的过程中我觉得我可以把它做一下扩展，让这个库变得更灵活一点~
 
-The MaterialEditText could let you define attrs what you like.Such as add a icon before, add the clear button at the end, set the textsize, textcolor, underline color, cursor color and so on...
+`MaterialEditText`允许你自定义属性，比如说在最前面加一个icon，添加一键清除文本按钮，设置下划线颜色、光标颜色等等…
 
-Improt library:
+导入`MaterialEditText`：
 
 	allprojects {
 		repositories {
@@ -23,9 +23,8 @@ Improt library:
 
 ![Gif](http://7xn4z4.com1.z0.glb.clouddn.com/MaterialEditText.gif)
 
-Here are the attrs supported:
+下面是可以自定义的属性：
 
-	
 	<attr name="inputTextSize" format="dimension"/>
     <attr name="inputTextColor" format="color"/>
     <attr name="inputIcon" format="reference"/>
@@ -42,10 +41,10 @@ Here are the attrs supported:
     <attr name="wordCountEnabled" format="boolean"/>
     <attr name="wordCountColor" format="color"/>
     <attr name="expandDuration" format="integer"/>
-
-Use it in xml:
-
-	<z.sye.space.library.MaterialEditText
+    
+ 插入到`.xml`中：
+ 
+ 	<z.sye.space.library.MaterialEditText
         android:id="@+id/password_material"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -58,13 +57,12 @@ Use it in xml:
         clean:hintColor="#FF5599"
         clean:inputTextSize="18sp"
         clean:underlineColor="#773355"/>
-
-Change the color what u want.<br/>
-You'd better set the `layout_height` to `wrap_content` and adjust the layout height by different textsizes.<br/>When textSizes change, the layout_height change as well.
-
-You can also set them in codes such as
-
-	mEditText.hint()
+ 
+ `MaterialEditText`会根据不同的`textSize`来自动调整高度，所以最好将`layout_height`设置为`wrap_content`。
+ 
+ 你也可以在代码中定义这些属性:
+ 
+ 	mEditText.hint()
             .inputType()
             //.maxLength() if you just want a word count limit, use this instead of filters
             .filters()
@@ -73,7 +71,5 @@ You can also set them in codes such as
             .setOnLostFocusListener(mOnLostFocusListener)
             .setOnErrorListener(mOnErrorListener);
             ...
-
-Method `mEditText.real()` can return the real EditText if you need some methods in EditText but didn't support in MaterialEditText.class.
-
-	
+           
+  如果你想对`EditText`进行一些操作，而这个方法并没有在`MaterialEditText`中提供的话，调用`mEditText.real()`方法，会把真正的`EditText`返回~~
